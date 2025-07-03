@@ -1,3 +1,8 @@
+"""
+这个文件用于配置日志记录器。
+日志记录器将日志信息写入到指定的日志文件中，以便后续的记录和调试。
+"""
+
 import logging
 import os
 from datetime import datetime

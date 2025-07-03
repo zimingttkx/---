@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Black">
+    <option name="sdkName" value="网络安全项目" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python312网络安全" project-jdk-type="Python SDK" />
+</project>

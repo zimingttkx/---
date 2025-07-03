@@ -1,3 +1,9 @@
+"""
+
+这个文件定义了一个自定义异常类 NetworkSecurityException，
+该类继承自 Python 内置的 Exception 类，用于处理网络安全相关的异常。
+当在网络安全相关的代码中发生异常时，可以抛出这个自定义异常，以便更好地记录和调试异常信息。
+"""
 import sys
 from networksecurity.logging import logger
 class NetworkSecurityException(Exception):
