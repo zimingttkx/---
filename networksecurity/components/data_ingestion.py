@@ -120,7 +120,7 @@ class DataIngestion:
                     f"在数据库 '{database_name}' 的集合 '{collection_name}' 中没有找到任何数据。"
                     f"请检查您的数据库连接、库/集合名称以及集合中是否有数据。"
                 )
-            # <<< ---  END: 增加的防御性代码  --- >>>
+            # 检查是否存在_id列 如果存在的话删除
 
             if "_id" in df.columns.to_list():
                 df = df.drop(columns=["_id"], axis=1)

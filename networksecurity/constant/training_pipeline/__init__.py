@@ -14,6 +14,8 @@ FILE_NAME: str = "phisingData.csv"
 TRAIN_FILE_NAME: str = "train.csv"
 TEST_FILE_NAME: str = "test.csv"
 
+
+# schema文件存放整个架构 用来对比数据是否完整
 SCHEMA_FILE_PATH = os.path.join("data_schema", "schema.yaml")
 
 SAVED_MODEL_DIR =os.path.join("saved_models")
@@ -23,7 +25,7 @@ MODEL_FILE_NAME = "model.pkl"
 
 
 """
-Data Ingestion related constant start with DATA_INGESTION VAR NAME
+数据摄取相关常量以 DATA_INGESTION VAR NAME 开头
 """
 DATA_INGESTION_COLLECTION_NAME: str = "NetworkData"
 DATA_INGESTION_DATABASE_NAME: str = "data"
@@ -33,7 +35,7 @@ DATA_INGESTION_INGESTED_DIR: str = "ingested"
 DATA_INGESTION_TRAIN_TEST_SPLIT_RATION: float = 0.2
 
 """
-Data Validation related constant start with DATA_VALIDATION VAR NAME
+数据验证相关常量以 DATA_VALIDATION VAR NAME 开头
 """
 DATA_VALIDATION_DIR_NAME: str = "data_validation"
 DATA_VALIDATION_VALID_DIR: str = "validated"
@@ -43,7 +45,7 @@ DATA_VALIDATION_DRIFT_REPORT_FILE_NAME: str = "report.yaml"
 PREPROCESSING_OBJECT_FILE_NAME = "preprocessing.pkl"
 
 """
-Data Transformation related constant start with DATA_TRANSFORMATION VAR NAME
+数据转换通常以 DATA_TRANSFORMATION VAR NAME 开头
 """
 DATA_TRANSFORMATION_DIR_NAME: str = "data_transformation"
 DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR: str = "transformed"
@@ -61,7 +63,7 @@ DATA_TRANSFORMATION_TEST_FILE_PATH: str = "test.npy"
 
 
 """
-Model Trainer ralated constant start with MODE TRAINER VAR NAME
+模型训练器通常以 MODE TRAINER VAR NAME 开头
 """
 
 MODEL_TRAINER_DIR_NAME: str = "model_trainer"
