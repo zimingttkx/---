@@ -1,26 +1,23 @@
-"""
-这个文件用于配置日志记录器。
-日志记录器将日志信息写入到指定的日志文件中，以便后续的记录和调试。
-"""
-
 import logging
 import os
 from datetime import datetime
 
-# 设置日志文件名
-LOG_FILE = f"networksecurity_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+# 1. 定义日志文件名
+LOG_FILE_NAME = f"networksecurity_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
-# 创建日志目录
-logs_path = os.path.join(os.getcwd(), "logs",LOG_FILE)
-# 确保日志目录存在
-os.makedirs(logs_path, exist_ok=True)
+# 2. 定义日志文件夹的路径
+LOGS_DIRECTORY = os.path.join(os.getcwd(), "logs")
 
-# 设置日志文件的完整路径
-LOG_FILE_PATH = os.path.join(logs_path, LOG_FILE)
+# 3. 确保日志文件夹存在
+os.makedirs(LOGS_DIRECTORY, exist_ok=True)
 
-# 配置日志记录器
+# 4. 定义最终的、完整的日志文件路径
+LOG_FILE_PATH = os.path.join(LOGS_DIRECTORY, LOG_FILE_NAME)
+
+# 5. 配置日志记录器
 logging.basicConfig(
-    filename= LOG_FILE_PATH,
-    format= '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level= logging.INFO
+    filename=LOG_FILE_PATH,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO,
+    encoding= "utf-8"
 )

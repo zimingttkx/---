@@ -1,8 +1,3 @@
-"""
-
-这个文件用于判断数据的schema是否符合预期 即是否有那么多行和列 行和列是否缺失
-
-"""
 columns:
   - having_IP_Address: int64
   - URL_Length: int64

@@ -5,7 +5,7 @@ from networksecurity.constant import training_pipeline
 print(training_pipeline.PIPELINE_NAME)
 print(training_pipeline.ARTIFACT_DIR)
 
-
+# 这个类用来定义训练管道的配置
 class TrainingPipelineConfig:
     def __init__(self, timestamp=datetime.now()):
         timestamp = timestamp.strftime("%m_%d_%Y_%H_%M_%S")
@@ -15,7 +15,7 @@ class TrainingPipelineConfig:
         self.model_dir = os.path.join("final_model")
         self.timestamp: str = timestamp
 
-
+# 这个类用来定义数据摄取的配置
 class DataIngestionConfig:
     def __init__(self, training_pipeline_config: TrainingPipelineConfig):
         self.data_ingestion_dir: str = os.path.join(
@@ -35,7 +35,7 @@ class DataIngestionConfig:
         self.database_name: str = training_pipeline.DATA_INGESTION_DATABASE_NAME
 
 
-# 创建一个数据验证类
+# 这个类用来定义数据验证的配置
 class DataValidationConfig:
     def __init__(self,training_pipeline_config: TrainingPipelineConfig):
         self.data_validation_dir: str = os.path.join(training_pipeline_config.artifact_dir, training_pipeline.DATA_VALIDATION_DIR_NAME)

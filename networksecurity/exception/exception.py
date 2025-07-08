@@ -5,18 +5,16 @@
 当在网络安全相关的代码中发生异常时，可以抛出这个自定义异常，以便更好地记录和调试异常信息。
 """
 import sys
-from networksecurity.logging import logger
+
 class NetworkSecurityException(Exception):
-    def __init__(self, error_message,error_details:sys):
-        self.error_message = error_message # 错误信息
-        self.error_details = error_details # 错误详情
-        _,_,exc_tb = error_details.exc_info() # 完整的错误信息
-
-        self.lineno = exc_tb.tb_lineno # 错误发生的行号
-        self.filename = exc_tb.tb_frame.f_code.co_filename # 错误发生的文件名
-
+    def __init__(self, error_message: Exception, error_detail: sys): # 参数名建议统一
+        """
+        用一个详细的、格式化的消息来初始化父类 Exception
+        """
+        super().__init__(f"错误发生在文件 {error_detail.exc_info()[2].tb_frame.f_code.co_filename} "
+                         f"第 {error_detail.exc_info()[2].tb_lineno}行, "
+                         f"内容是: {error_message}")
     def __str__(self):
-        return f" 错误发生在文件 {self.filename} 第 {self.lineno}行 : 内容是: {self.error_message}"
-
+        return self.args[0]
 
 
