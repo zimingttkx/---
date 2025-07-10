@@ -58,19 +58,16 @@ def write_yaml_file(file_path: str,content: object, replace: bool = False)-> Non
 def save_numpy_array_data(file_path: str,array: np.array):
     """
     保存numpy数组到指定路径的文件中
-    :param file_path:  文件路径
-    :param array:  numpy数组
-    :return:
     """
-
     try:
-        dir_path = os.path.dirname(file_path) # 获取文件路径的目录
-        os.makedirs(dir_path,exist_ok= True) # 创建一个文件夹
-        with open (file_path,"w") as file_obj: # 打开文件
-            np.save(file_obj,array) # 保存numpy数组到文件中
+        dir_path = os.path.dirname(file_path)
+        os.makedirs(dir_path,exist_ok= True)
+        # 将 "w" 修改为 "wb"，以二进制模式写入
+        with open (file_path, "wb") as file_obj:
+            np.save(file_obj,array)
 
     except Exception as e:
-        raise NetworkSecurityException(e,sys) from e # 抛出异常
+        raise NetworkSecurityException(e,sys) from e
 
 
 def save_object(file_path: str,obj: object)-> None:
