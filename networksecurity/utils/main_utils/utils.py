@@ -11,22 +11,85 @@ import numpy as np
 import dill
 import pickle
 
-# 读取yaml文件
 def read_yaml_file(file_path:str) -> dict:
+    """
+
+
+    读取yaml文件
+    :param file_path:  文件路径
+    :return:  返回字典
+    """
     try:
+        # 打开yaml文件
         with open(file_path,"rb") as yaml_file:
+            # 使用yaml.safe_load方法将文件内容转换为字典
             return yaml.safe_load(yaml_file)
     except Exception as e:
+        # 抛出异常
         raise NetworkSecurityException(e,sys) from e
 
-# 创建一个函数用来将yaml文件写入文件夹
+
+
 def write_yaml_file(file_path: str,content: object, replace: bool = False)-> None:
+    """
+
+
+    将内容写入yaml文件
+    :param file_path:  文件路径
+    :param content:  内容
+    :param replace:  是否替换文件，默认为False
+    :return:
+    """
     try:
+        # 如果replace为True，则删除文件
         if replace:
             if os.path.exists(file_path):
                 os.remove(file_path)
+        # 创建文件路径
         os.makedirs(os.path.dirname(file_path),exist_ok=True)
+        # 打开文件，写入内容
         with open (file_path,"w") as file:
             yaml.dump(content,file)
     except Exception as e:
+        # 抛出异常
         raise NetworkSecurityException(sys,e) from e
+
+
+def save_numpy_array_data(file_path: str,array: np.array):
+    """
+    保存numpy数组到指定路径的文件中
+    :param file_path:  文件路径
+    :param array:  numpy数组
+    :return:
+    """
+
+    try:
+        dir_path = os.path.dirname(file_path) # 获取文件路径的目录
+        os.makedirs(dir_path,exist_ok= True) # 创建一个文件夹
+        with open (file_path,"w") as file_obj: # 打开文件
+            np.save(file_obj,array) # 保存numpy数组到文件中
+
+    except Exception as e:
+        raise NetworkSecurityException(e,sys) from e # 抛出异常
+
+
+def save_object(file_path: str,obj: object)-> None:
+# 将对象保存到文件中
+    try:
+
+        logging.info(f"文件开始保存在路径 {file_path}")
+
+        # 创建文件路径的目录
+        os.makedirs(os.path.dirname(file_path),exist_ok= True)
+
+        # 打开文件，以二进制写入模式
+        with open(file_path,"wb") as file_obj:
+
+            # 将对象保存到文件中
+            pickle.dump(obj,file_obj)
+
+        logging.info(f"文件保存成功 {file_path}")
+    except Exception as e:
+
+        # 抛出异常
+        raise NetworkSecurityException(e,sys) from e

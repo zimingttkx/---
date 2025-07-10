@@ -22,8 +22,6 @@ SAVED_MODEL_DIR =os.path.join("saved_models")
 MODEL_FILE_NAME = "model.pkl"
 
 
-
-
 """
 数据摄取相关常量以 DATA_INGESTION VAR NAME 开头
 """
@@ -51,9 +49,9 @@ DATA_TRANSFORMATION_DIR_NAME: str = "data_transformation"
 DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR: str = "transformed"
 DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR: str = "transformed_object"
 
-## kkn imputer to replace nan values
+## kkn填充类
 DATA_TRANSFORMATION_IMPUTER_PARAMS: dict = {
-    "missing_values": np.nan,
+    "missing_values": np.nan, # 填充nan值
     "n_neighbors": 3,
     "weights": "uniform",
 }

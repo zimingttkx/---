@@ -9,7 +9,7 @@ class DataIngestionArtifactManual:
 
     def __repr__(self) -> str:
         # 自动生成的可读性好的打印格式
-        return f"DataIngestionArtifactManual(train_file_path='{self.train_file_path}', test_file_path='{self.test_file_path}')"
+        return "DataIngestionArtifactManual(train_file_path='{self.train_file_path}', test_file_path='{self.test_file_path}')"
 
     def __eq__(self, other) -> bool:
         # 自动生成的相等比较
