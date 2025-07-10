@@ -1,6 +1,7 @@
 from networksecurity.entity.artifact_entity import ClassificationMetricArtifact
 from networksecurity.exception.exception import NetworkSecurityException
 from sklearn.metrics import f1_score,precision_score,recall_score
+from networksecurity.logging.logger import logging
 import sys
 
 def get_classification_metric(y_true,y_pred)-> ClassificationMetricArtifact:
@@ -25,9 +26,10 @@ def get_classification_metric(y_true,y_pred)-> ClassificationMetricArtifact:
             precision_score=model_precision_score,
             recall_score=model_recall_score)
         # 返回ClassificationMetricArtifact对象
+        logging.info(
+            f"模型评估指标：f1_score={model_f1_score}, precision_score={model_precision_score}, recall_score={model_recall_score}")
         return classification_metric
-        # 记录日志
-        logging.info(f"模型评估指标：f1_score={model_f1_score}, precision_score={model_precision_score}, recall_score={model_recall_score}")
+
     except Exception as e:
         # 抛出NetworkSecurityException异常
         raise NetworkSecurityException(e,sys) from e

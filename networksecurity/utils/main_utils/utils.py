@@ -4,6 +4,9 @@
 """
 
 import yaml
+from sklearn.metrics import r2_score
+from sklearn.model_selection import GridSearchCV
+
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
 import os,sys
@@ -115,4 +118,42 @@ def load_object(file_path: str)-> object:
             return pickle.load(file_obj)
     except Exception as e:
         # 如果发生异常，抛出NetworkSecurityException异常，并附带异常信息
+        raise NetworkSecurityException(e,sys) from e
+
+
+def evaluate_model(X_train,y_train,X_test,y_test,models,params):
+    """
+
+    :param X_train:  训练集特征
+    :param y_train:  训练集标签
+    :param X_test:  测试集特征
+    :param y_test:  测试集标签
+    :param models:  模型字典，键为模型名称，值为模型对象
+    :param params:  参数字典，键为模型名称，值为参数列表
+    :return:  模型评估报告，键为模型名称，值为模型在测试集上的R2得分
+    """
+    try:
+        report= {}
+        for i in range(len(list(models))):
+            model = list(models.values())[i]
+            para = params[list(models.keys())[i]]
+
+            # 使用GridSearchCV进行超参数调优
+            gs = GridSearchCV(model,para,cv=5)
+            gs.fit(X_train,y_train)
+
+            # 自动设置最好的参数
+            model.set_params(**gs.best_params_)
+            model.fit(X_train,y_train)
+
+            # 预测训练集和测试集
+            y_train_pred = model.predict(X_train)
+            y_test_pred = model.predict(X_test)
+
+            train_model_score = r2_score(X_train,y_train)
+            test_model_score = r2_score(X_test,y_test)
+            report[list(models.keys())[i]] = test_model_score
+
+        return report
+    except Exception as e:
         raise NetworkSecurityException(e,sys) from e
