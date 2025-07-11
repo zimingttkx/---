@@ -12,6 +12,8 @@ lightgbm
 catboost
 mlflow
 dagshub
+fastapi
+uvicorn
 
 
 ## -e .
