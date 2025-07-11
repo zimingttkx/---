@@ -1,5 +1,9 @@
 import os
 import sys
+
+from mlflow.metrics import f1_score
+from sklearn.metrics import precision_score
+
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
 
@@ -21,6 +25,16 @@ import catboost as cb
 
 from sklearn.model_selection import GridSearchCV
 
+# 导入mlflow和dagshub进行云端管理整个实验
+import mlflow
+import joblib  # 导入 joblib 用于保存模型
+import dagshub
+
+
+# 这样初始化之后实验文件将不会存在于本地
+dagshub.init(repo_owner='zimingttkx', repo_name='---', mlflow=True)
+
+
 
 class ModelTrainer:
     def __init__(self, model_trainer_config: ModelTrainerConfig,
@@ -29,6 +43,50 @@ class ModelTrainer:
             self.model_trainer_config = model_trainer_config
             self.data_transformation_artifact = data_transformation_artifact
         except Exception as e:
+            raise NetworkSecurityException(e, sys) from e
+
+    def tract_mlflow(self, best_model, classificationmetric):
+        """
+        【方案 A】
+        记录MLflow的指标和模型到 DagsHub。
+        此版本使用 log_artifact 来兼容 DagsHub。
+        """
+        try:
+            # 开始一个新的MLflow运行
+            with mlflow.start_run():
+                # -------------------------------------------------------------
+                #  记录指标 (这部分代码是正确的，予以保留)
+                # -------------------------------------------------------------
+                f1_score = classificationmetric.f1_score
+                precision_score = classificationmetric.precision_score
+                recall_score = classificationmetric.recall_score
+
+                print(f"记录指标: F1={f1_score:.4f}, Precision={precision_score:.4f}, Recall={recall_score:.4f}")
+                mlflow.log_metric("f1_score", f1_score)
+                mlflow.log_metric("precision", precision_score)
+                mlflow.log_metric("recall_score", recall_score)
+
+                # -------------------------------------------------------------
+                #  记录模型 (使用 joblib + log_artifact 替换 log_model)
+                # -------------------------------------------------------------
+                print("正在将模型保存为工件 (artifact)...")
+
+                # 1. 定义一个本地临时路径用于存放模型文件
+                local_model_dir = "final_models"
+                os.makedirs(local_model_dir, exist_ok=True)
+                local_model_path = os.path.join(local_model_dir, "model.pkl")
+
+                # 2. 使用 joblib 将模型对象序列化到本地文件
+                joblib.dump(best_model, local_model_path)
+
+                # 3. 使用 log_artifact 将本地模型文件上传到 MLflow
+                # "model_artifacts" 是您在 MLflow UI 的 Artifacts 中看到的文件夹名称
+                mlflow.log_artifact(local_model_path, artifact_path="model_artifacts")
+
+                print("模型已作为工件成功记录。")
+
+        except Exception as e:
+            # 抛出网络安全异常
             raise NetworkSecurityException(e, sys) from e
 
     def train_model(self, x_train, y_train, x_test, y_test):
@@ -48,60 +106,55 @@ class ModelTrainer:
 
             params = {
                 'RandomForestClassifier': {
-                    'n_estimators': [100, 200, 500],
-                    'max_depth': [10, 20, 30, None],
-                    'min_samples_split': [2, 5, 10],
-                    'min_samples_leaf': [1, 2, 4],
-                    'max_features': ['sqrt', 'log2', None]
+                    'n_estimators': [50, 100],  # 减少树的数量
+                    'max_depth': [10, 20],
+                    'min_samples_split': [2, 5]
                 },
                 'GradientBoostingClassifier': {
-                    'n_estimators': [100, 200, 500],
-                    'learning_rate': [0.01, 0.05, 0.1],
-                    'max_depth': [3, 5, 8],
-                    'subsample': [0.7, 0.8, 0.9]
+                    'n_estimators': [50, 100],
+                    'learning_rate': [0.05, 0.1],
+                    'max_depth': [3, 5]
                 },
                 'AdaBoostClassifier': {
-                    'n_estimators': [50, 100, 200],
-                    'learning_rate': [0.01, 0.1, 0.5, 1.0]
-                    # 'base_estimator': [DecisionTreeClassifier(max_depth=1), DecisionTreeClassifier(max_depth=2)] # 进阶调优
+                    'n_estimators': [50, 100],
+                    'learning_rate': [0.1, 0.5, 1.0]
                 },
                 'LogisticRegression': {
-                    'C': [0.01, 0.1, 1, 10, 100],
+                    # liblinear 对小数据集收敛快，且同时支持 L1 和 L2
+                    'C': [0.1, 1],
                     'penalty': ['l1', 'l2'],
-                    'solver': ['liblinear', 'saga']
+                    'solver': ['liblinear']
                 },
                 'SVC': {
-                    'C': [0.1, 1, 10, 100],
-                    'gamma': ['scale', 'auto', 0.001, 0.01, 0.1],
-                    'kernel': ['rbf', 'poly']
+                    # rbf 是最常用的核，poly 计算成本较高，初期可省略
+                    'C': [1, 10],
+                    'gamma': ['scale'],
+                    'kernel': ['rbf']
                 },
                 'KNeighborsClassifier': {
-                    'n_neighbors': [3, 5, 7, 9, 11],
-                    'weights': ['uniform', 'distance'],
-                    'p': [1, 2]  # 1: 曼哈顿距离 (Manhattan), 2: 欧氏距离 (Euclidean)
+                    'n_neighbors': [3, 5, 7],
+                    'weights': ['uniform', 'distance']
                 },
                 'GaussianNB': {
-                    'var_smoothing': [1e-9, 1e-8, 1e-7, 1e-6]
+                    # 此模型训练极快，参数影响有限，可保留原样
+                    'var_smoothing': [1e-9, 1e-8]
                 },
                 'XGBoost': {
-                    'n_estimators': [100, 200, 500],
-                    'learning_rate': [0.01, 0.05, 0.1],
-                    'max_depth': [3, 5, 7],
-                    'subsample': [0.7, 0.8, 0.9],
-                    'colsample_bytree': [0.7, 0.8, 0.9]
+                    'n_estimators': [50, 100],
+                    'learning_rate': [0.05, 0.1],
+                    'max_depth': [3, 5],
+                    'colsample_bytree': [0.8]  # 固定一个常用值
                 },
                 'LightGBM': {
-                    'n_estimators': [100, 200, 500],
-                    'learning_rate': [0.01, 0.05, 0.1],
-                    'num_leaves': [31, 50, 70],
-                    'max_depth': [-1, 10, 20],
-                    'colsample_bytree': [0.7, 0.8]
+                    'n_estimators': [50],
+                    'learning_rate': [0.05, 0.1],
+                    'num_leaves': [50]
                 },
                 'CatBoost': {
-                    'iterations': [200, 500, 1000],
-                    'learning_rate': [0.01, 0.05, 0.1],
-                    'depth': [4, 6, 8],
-                    'l2_leaf_reg': [1, 3, 5, 7]  # L2 正则化，防止过拟合
+                    # CatBoost 加上 verbose=0 参数可以在训练中保持静默
+                    'iterations': [100, 200],
+                    'learning_rate': [0.05, 0.1],
+                    'depth': [4, 6]
                 }
             }
 
@@ -144,6 +197,9 @@ class ModelTrainer:
             y_train_pred = best_model.predict(x_train)
             classification_train_metric = get_classification_metric(y_true=y_train, y_pred=y_train_pred)
 
+            # 跟踪训练流程
+            self.tract_mlflow(best_model,classification_train_metric)
+
             y_test_pred = best_model.predict(x_test)
             classification_test_metric = get_classification_metric(y_true=y_test, y_pred=y_test_pred)
 
@@ -155,7 +211,8 @@ class ModelTrainer:
             model_dir_path = os.path.dirname(self.model_trainer_config.trained_model_file_path)
             os.makedirs(model_dir_path, exist_ok=True)
             save_object(file_path=self.model_trainer_config.trained_model_file_path, obj=network_model)
-
+            # 将最后的模型保存到文件夹
+            save_object("final_models/model.pkl",best_model)
             model_trainer_artifact = ModelTrainerArtifact(
                 trained_model_file_path=self.model_trainer_config.trained_model_file_path,
                 train_metric_artifact=classification_train_metric,

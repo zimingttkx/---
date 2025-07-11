@@ -10,6 +10,8 @@ pyyaml
 xgboost
 lightgbm
 catboost
+mlflow
+dagshub
 
 
 ## -e .

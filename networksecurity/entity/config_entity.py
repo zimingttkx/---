@@ -13,7 +13,7 @@ class TrainingPipelineConfig:
         self.timestamp: str = timestamp
 
 
-# 这个类用来定义数据摄取的配置
+# 这个类用来定义数据摄取的配置 包含了路径
 class DataIngestionConfig:
     def __init__(self, training_pipeline_config: TrainingPipelineConfig):
         self.data_ingestion_dir: str = os.path.join(
