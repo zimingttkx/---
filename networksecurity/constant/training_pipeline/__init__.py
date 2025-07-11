@@ -67,6 +67,6 @@ MODEL_TRAINER_DIR_NAME: str = "model_trainer" # 模型训练目录
 MODEL_TRAINER_TRAINED_MODEL_DIR: str = "trained_model" # 训练好的模型存放目录
 MODEL_TRAINER_TRAINED_MODEL_NAME: str = "model.pkl" # 训练好的模型文件名
 MODEL_TRAINER_EXPECTED_SCORE: float = 0.6 # 预期得分
-MODEL_TRAINER_OVER_FIITING_UNDER_FITTING_THRESHOLD: float = 0.05 # 过拟合和欠拟合的阈值
+MODEL_TRAINER_OVER_FITTING_UNDER_FITTING_THRESHOLD: float = 0.05 # 过拟合和欠拟合的阈值
 
 TRAINING_BUCKET_NAME = "networksecurity"
