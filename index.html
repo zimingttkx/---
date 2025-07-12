@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络安全威胁预测平台</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义一些基础样式 */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl mx-auto">
+        <!-- 标题 -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-white">
+                <span class="text-cyan-400">🛡️</span> 网络安全威胁预测平台
+            </h1>
+            <p class="text-gray-400 mt-2">一个基于机器学习的交互式预测与训练工具</p>
+        </header>
+
+        <main class="grid md:grid-cols-2 gap-8">
+            <!-- 预测模块 -->
+            <section id="predict-section" class="glassmorphism rounded-2xl p-6 shadow-2xl">
+                <h2 class="text-2xl font-semibold text-white border-b-2 border-cyan-500 pb-2 mb-4">模型预测</h2>
+                <p class="text-gray-400 mb-4 text-sm">上传CSV文件以进行批量预测。请确保文件列与训练数据一致。</p>
+
+                <div class="mb-4">
+                    <label for="file-upload" class="block mb-2 text-sm font-medium text-gray-300">选择文件</label>
+                    <input id="file-upload" type="file" accept=".csv" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 cursor-pointer"/>
+                </div>
+
+                <button id="predict-btn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                    执行预测
+                </button>
+            </section>
+
+            <!-- 训练模块 -->
+            <section id="train-section" class="glassmorphism rounded-2xl p-6 shadow-2xl">
+                <h2 class="text-2xl font-semibold text-white border-b-2 border-green-500 pb-2 mb-4">模型训练</h2>
+                <p class="text-gray-400 mb-4 text-sm">启动完整的后端训练管道，包括数据处理与模型训练。</p>
+                <div class="bg-yellow-900/50 border border-yellow-700 text-yellow-300 px-4 py-2 rounded-lg text-xs mb-4">
+                    <strong>注意:</strong> 训练过程可能消耗较多资源和时间，请在合适的时候运行。
+                </div>
+                <button id="train-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                    🚀 启动训练管道
+                </button>
+            </section>
+        </main>
+
+        <!-- 结果展示区域 -->
+        <footer id="results-container" class="mt-10 glassmorphism rounded-2xl p-6 shadow-2xl hidden">
+            <h3 class="text-xl font-semibold text-white mb-4">预测结果</h3>
+            <div id="message-area" class="mb-4"></div>
+            <div class="overflow-x-auto">
+                <table id="results-table" class="min-w-full text-sm text-left text-gray-300">
+                    <!-- 表头和表体将由JS动态生成 -->
+                </table>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const predictBtn = document.getElementById('predict-btn');
+        const trainBtn = document.getElementById('train-btn');
+        const fileUpload = document.getElementById('file-upload');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsTable = document.getElementById('results-table');
+        const messageArea = document.getElementById('message-area');
+
+        const API_BASE_URL = 'http://localhost:8000';
+
+        // 显示消息的函数
+        const showMessage = (text, type = 'info') => {
+            const colorClasses = {
+                info: 'text-cyan-300',
+                success: 'text-green-400',
+                error: 'text-red-400',
+            };
+            messageArea.innerHTML = `<p class="${colorClasses[type]}">${text}</p>`;
+        };
+
+        // 预测按钮点击事件
+        predictBtn.addEventListener('click', async () => {
+            if (!fileUpload.files.length) {
+                showMessage('请先选择一个CSV文件。', 'error');
+                resultsContainer.classList.remove('hidden');
+                resultsTable.innerHTML = '';
+                return;
+            }
+
+            const file = fileUpload.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            resultsContainer.classList.remove('hidden');
+            resultsTable.innerHTML = '';
+            showMessage('正在向服务器发送请求并进行预测...', 'info');
+            predictBtn.disabled = true;
+            predictBtn.textContent = '预测中...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/predict`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `服务器错误: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    showMessage('预测完成，但未返回任何数据。', 'info');
+                    return;
+                }
+
+                // 动态生成表格
+                const headers = Object.keys(data[0]);
+                const thead = `<thead><tr class="bg-gray-800">${headers.map(h => `<th class="px-4 py-2">${h}</th>`).join('')}</tr></thead>`;
+                const tbody = `<tbody>${data.map(row => `<tr class="border-b border-gray-700 hover:bg-gray-800/50">${headers.map(h => `<td class="px-4 py-2 ${h === 'prediction' ? (row[h].includes('危险') ? 'text-red-400 font-bold' : 'text-green-400') : ''}">${row[h]}</td>`).join('')}</tr>`).join('')}</tbody>`;
+                resultsTable.innerHTML = thead + tbody;
+                showMessage('预测成功！', 'success');
+
+            } catch (error) {
+                console.error('Prediction Error:', error);
+                showMessage(`预测失败: ${error.message}`, 'error');
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = '执行预测';
+            }
+        });
+
+        // 训练按钮点击事件
+        trainBtn.addEventListener('click', async () => {
+            resultsContainer.classList.remove('hidden');
+            resultsTable.innerHTML = '';
+            showMessage('已向服务器发送训练请求，请在后台或日志中查看进度...', 'info');
+            trainBtn.disabled = true;
+            trainBtn.textContent = '训练中...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/train`);
+                const resultText = await response.text();
+                if (!response.ok) {
+                    throw new Error(resultText || `服务器错误: ${response.status}`);
+                }
+                showMessage(`训练管道响应: ${resultText}`, 'success');
+            } catch (error) {
+                 console.error('Training Error:', error);
+                showMessage(`训练请求失败: ${error.message}`, 'error');
+            } finally {
+                trainBtn.disabled = false;
+                trainBtn.textContent = '🚀 启动训练管道';
+            }
+        });
+    </script>
+</body>
+</html>

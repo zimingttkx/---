@@ -103,7 +103,7 @@ def save_object(file_path: str,obj: object)-> None:
 
 def load_object(file_path: str)-> object:
     """
-    这个文件用于加载pkl文件
+    这个文件用于加载pkl文件 主要是数据预处理文件和模型文件
     :param file_path:
     :return:
     """
