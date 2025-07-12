@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>实时威胁推演 - NeuralShield 平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-page="predict">
+    {% include '_header.html' %}
+    <main>
+        <h1>单点实时威胁推演</h1>
+        <div class="card">
+            <p>输入待分析目标的特征向量，模型将进行实时计算并返回威胁等级判断。</p>
+            <form id="prediction-form">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group"><label for="having_IP_Address">having_IP_Address</label><input type="number" id="having_IP_Address" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="URL_Length">URL_Length</label><input type="number" id="URL_Length" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Shortining_Service">Shortining_Service</label><input type="number" id="Shortining_Service" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="having_At_Symbol">having_At_Symbol</label><input type="number" id="having_At_Symbol" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="double_slash_redirecting">double_slash_redirecting</label><input type="number" id="double_slash_redirecting" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Prefix_Suffix">Prefix_Suffix</label><input type="number" id="Prefix_Suffix" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="having_Sub_Domain">having_Sub_Domain</label><input type="number" id="having_Sub_Domain" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="SSLfinal_State">SSLfinal_State</label><input type="number" id="SSLfinal_State" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Domain_registeration_length">Domain_registeration_length</label><input type="number" id="Domain_registeration_length" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Favicon">Favicon</label><input type="number" id="Favicon" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="port">port</label><input type="number" id="port" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="HTTPS_token">HTTPS_token</label><input type="number" id="HTTPS_token" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Request_URL">Request_URL</label><input type="number" id="Request_URL" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="URL_of_Anchor">URL_of_Anchor</label><input type="number" id="URL_of_Anchor" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Links_in_tags">Links_in_tags</label><input type="number" id="Links_in_tags" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="SFH">SFH</label><input type="number" id="SFH" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Submitting_to_email">Submitting_to_email</label><input type="number" id="Submitting_to_email" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Abnormal_URL">Abnormal_URL</label><input type="number" id="Abnormal_URL" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Redirect">Redirect</label><input type="number" id="Redirect" class="form-control" value="0" required></div>
+                    <div class="form-group"><label for="on_mouseover">on_mouseover</label><input type="number" id="on_mouseover" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="RightClick">RightClick</label><input type="number" id="RightClick" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="popUpWidnow">popUpWidnow</label><input type="number" id="popUpWidnow" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Iframe">Iframe</label><input type="number" id="Iframe" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="age_of_domain">age_of_domain</label><input type="number" id="age_of_domain" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="DNSRecord">DNSRecord</label><input type="number" id="DNSRecord" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="web_traffic">web_traffic</label><input type="number" id="web_traffic" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Page_Rank">Page_Rank</label><input type="number" id="Page_Rank" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Google_Index">Google_Index</label><input type="number" id="Google_Index" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Links_pointing_to_page">Links_pointing_to_page</label><input type="number" id="Links_pointing_to_page" class="form-control" value="1" required></div>
+                    <div class="form-group"><label for="Statistical_report">Statistical_report</label><input type="number" id="Statistical_report" class="form-control" value="1" required></div>
+                </div>
+                <br>
+                <button type="submit" class="btn">执行推演</button>
+            </form>
+        </div>
+        <div id="result-card" class="card" style="display: none;">
+            <h2>推演结论</h2>
+            <p id="result-text" style="font-size: 2rem; font-weight: bold; text-align: center;"></p>
+        </div>
+    </main>
+    <script src="/static/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('prediction-form');
+            const resultCard = document.getElementById('result-card');
+            const resultText = document.getElementById('result-text');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                resultCard.style.display = 'none';
+                const featureNames = ['having_IP_Address', 'URL_Length', 'Shortining_Service', 'having_At_Symbol','double_slash_redirecting', 'Prefix_Suffix', 'having_Sub_Domain', 'SSLfinal_State','Domain_registeration_length', 'Favicon', 'port', 'HTTPS_token', 'Request_URL','URL_of_Anchor', 'Links_in_tags', 'SFH', 'Submitting_to_email', 'Abnormal_URL','Redirect', 'on_mouseover', 'RightClick', 'popUpWidnow', 'Iframe', 'age_of_domain','DNSRecord', 'web_traffic', 'Page_Rank', 'Google_Index', 'Links_pointing_to_page','Statistical_report'];
+                const inputData = {};
+                featureNames.forEach(name => { inputData[name] = parseInt(document.getElementById(name).value, 10); });
+
+                try {
+                    const response = await fetch('/predict_live', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(inputData)
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || '服务器响应错误');
+                    }
+                    const result = await response.json();
+                    resultText.textContent = result.prediction;
+                    resultText.style.color = (result.raw_prediction === 1) ? 'var(--red-color)' : 'var(--accent-color)';
+                    resultCard.style.display = 'block';
+                } catch (error) {
+                    resultText.textContent = `推演失败: ${error.message}`;
+                    resultText.style.color = 'var(--red-color)';
+                    resultCard.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

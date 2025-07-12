@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>模型演化控制台 - NeuralShield 平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-page="training">
+    {% include '_header.html' %}
+    <main>
+        <h1>模型演化控制台</h1>
+        <div class="card">
+            <h2>任务触发器</h2>
+            <p>启动新一轮的模型演化流程。系统将自动执行完整的数据处理与训练流水线。</p>
+            <button id="train-btn" class="btn">Initiate Evolution Sequence</button>
+        </div>
+        <div class="card">
+            <h2>实时演化日志 (Evolution Log Stream)</h2>
+            <div class="progress-bar-container">
+                <span id="progress-label">GridSearch Progress: </span>
+                <span id="progress-text">Awaiting task initiation...</span>
+            </div>
+            <div id="terminal" class="terminal"></div>
+        </div>
+    </main>
+    <script src="/static/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const trainBtn = document.getElementById('train-btn');
+            const terminal = document.getElementById('terminal');
+            const progressText = document.getElementById('progress-text');
+            const WS_URL = 'ws://localhost:8000/ws/train';
+
+            function addLog(message, type = '') {
+                const line = document.createElement('div');
+                line.className = `terminal-line ${type}`;
+                const timestamp = new Date().toLocaleTimeString();
+                line.textContent = `[${timestamp}] ${message}`;
+                terminal.appendChild(line);
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+
+            function updateProgressBar(progressStr) {
+                const [current, total] = progressStr.split('/').map(Number);
+                const percentage = total > 0 ? ((current / total) * 100).toFixed(2) : 0;
+                const barLength = 40;
+                const filledLength = Math.round(barLength * (percentage / 100));
+                const bar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
+                progressText.textContent = `[${bar}] ${percentage}% (${current}/${total} fits)`;
+            }
+
+            trainBtn.addEventListener('click', async () => {
+                terminal.innerHTML = '';
+                progressText.textContent = 'Initializing...';
+                trainBtn.disabled = true;
+                trainBtn.textContent = 'Executing...';
+
+                const socket = new WebSocket(WS_URL);
+                socket.onopen = () => addLog('>> Connection established. Awaiting stream...', 'success');
+                socket.onclose = () => {
+                    addLog('>> Stream terminated.', 'error');
+                    trainBtn.disabled = false;
+                    trainBtn.textContent = 'Initiate Evolution Sequence';
+                };
+                socket.onerror = () => addLog('>> WebSocket connection error.', 'error');
+                socket.onmessage = (event) => {
+                    const message = event.data;
+                    if (message.startsWith('[PROGRESS]')) {
+                        updateProgressBar(message.replace('[PROGRESS]', ''));
+                    } else if (message.includes('[ERROR]')) {
+                        addLog(message, 'error');
+                    } else if (message.includes('[FINISH]')) {
+                        addLog(message, 'success');
+                    } else {
+                        addLog(message);
+                    }
+                };
+
+                try {
+                    const response = await fetch('/train');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Server-side trigger failed.');
+                    }
+                    addLog('>> Trigger signal sent successfully. Pipeline is running...', 'info');
+                } catch (e) {
+                    addLog(`>> TRIGGER FAILED: ${e.message}`, 'error');
+                    socket.close();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
